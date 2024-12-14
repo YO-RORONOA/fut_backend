@@ -3,7 +3,7 @@
 $host = 'localhost';
 $username = 'root';
 $password = '';
-$dbname = 'php_fut';
+$dbname = 'fut';
 
 $conn = new mysqli ($host, $username, $password, $dbname);
 

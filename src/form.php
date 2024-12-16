@@ -66,12 +66,23 @@ if ($position === "GK") {
     $stmt->bind_param("iiiiiii", $player_id, $pace, $shooting, $passing, $dribbling, $defending, $physical);
     $stmt->execute();
 }
-
+}
+$sql = "SELECT * FROM players";
+$result = mysqli_query($conn, $sql);
+echo($sql);
+if(mysqli_num_rows($result)> 0)
+{
+    while($row= mysqli_fetch_assoc($result))
+    {
+    
+        echo $row["name"] . "<br>";
+    
+    }
 };
 
 
 
-
+mysqli_close($conn);
 
 
 ?>

@@ -4,26 +4,26 @@ include('../php/config.php');
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 $name = $_POST['name'];
-$positon = $_POST['position'];
+$position = $_POST['position'];
 $nationality = $_POST['nationality'];
 $club = $_POST['club'];
 $rating = $_POST['rating'];
 $photo = $_POST['photo'];
 $logo = $_POST['logo'];
 $flag = $_POST['flag'];
-$pace = $_POSt['pace'];
-$shooting = $_POSt['shooting'];
-$passing = $_POSt['passing '];
-$dribbling = $_POSt['dribbling'];
-$defending = $_POSt['defending'];
-$physical = $_POSt['physical '];
+$pace = $_POST['pace'];
+$shooting = $_POST['shooting'];
+$passing = $_POST['passing'];
+$dribbling = $_POST['dribbling'];
+$defending = $_POST['defending'];
+$physical = $_POST['physical'];
 
-$diving = $_POSt['diving'];
-$handling = $_POSt['handling '];
-$kicking = $_POSt['kicking'];
-$reflexes = $_POSt['reflexes'];
-$speed = $_POSt['speed'];
-$positioning = $_POSt['positioning'];
+$diving = $_POST['diving'];
+$handling = $_POST['handling'];
+$kicking = $_POST['kicking'];
+$reflexes = $_POST['reflexes'];
+$speed = $_POST['speed'];
+$positioning = $_POST['positioning'];
 
 
 $name = mysqli_real_escape_string($conn, $name);
@@ -34,13 +34,42 @@ $photo = mysqli_real_escape_string($conn, $photo);
 $logo = mysqli_real_escape_string($conn, $logo);
 $flag = mysqli_real_escape_string($conn, $flag);
 
-};
-
-
-
+//flag
 $stmt= $conn->prepare("INSERT INTO nationalities (name, flag) VALUES(?, ?) ON DUPLICATE KEY update id = id");
 $stmt-> bind_param("ss", $nationality, $flag);
 $stmt->execute();
+$nationality_id = $conn->insert_id ?: $conn->query("SELECT id FROM nationalities WHERE name = '{$nationality}'")->fetch_assoc()['id'];
+
+// club
+$stmt = $conn->prepare("INSERT INTO clubs (club, logo) VALUES (?, ?) ON DUPLICATE KEY UPDATE id=id");
+$stmt->bind_param("ss", $club, $logo);
+$stmt->execute();
+$club_id = $conn->insert_id ?: $conn->query("SELECT id FROM clubs WHERE club = '{$club}'")->fetch_assoc()['id'];
+
+// player
+$stmt = $conn->prepare("INSERT INTO players (name, photo, position, rating, nationality_id, club_id) VALUES (?, ?, ?, ?, ?, ?)");
+$stmt->bind_param("sssiii", $name, $photo, $position, $rating, $nationality_id, $club_id);
+$stmt->execute();
+$player_id = $conn->insert_id;
+
+// stats
+if ($position === "GK") {
+
+    $stmt = $conn->prepare("INSERT INTO goalkeeper (player_id, diving, handling, kicking, reflexes, speed, positioning) 
+        VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("iiiiiii", $player_id, $diving, $handling, $kicking, $reflexes, $speed, $positioning);
+    $stmt->execute();
+} else {
+
+    $stmt = $conn->prepare("INSERT INTO fplayer (player_id, pace, shooting, passing, dribbling, defending, physical) 
+        VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("iiiiiii", $player_id, $pace, $shooting, $passing, $dribbling, $defending, $physical);
+    $stmt->execute();
+}
+
+};
+
+
 
 
 
@@ -54,6 +83,8 @@ $stmt->execute();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+
     <link href="./output.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100 min-h-screen">

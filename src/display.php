@@ -44,7 +44,7 @@ $result = $conn->query($sql);
             </header>
 
             <!-- Table Content -->
-            <main class="flex-1 p-4">
+            <main class="flex-1 p-4 overflow-scroll">
                 <div class="overflow-x-auto bg-white shadow-md rounded-lg">
                     <table class="min-w-full table-auto">
                         <thead class="bg-gray-200">

@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-document.getElementById('position').addEventListener('change', function () {
-    const selectedPosition = this.value;
+    const selectedPosition = document.getElementById('position').value;
     const outfieldStats = document.getElementById('outfieldStats');
     const gkStats = document.getElementById('gkStats');
 
@@ -13,4 +12,3 @@ document.getElementById('position').addEventListener('change', function () {
     }
 });
 
-});

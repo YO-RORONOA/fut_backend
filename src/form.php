@@ -128,6 +128,7 @@ mysqli_close($conn);
                 <div class="bg-white shadow-md rounded-lg p-6">
                     <h3 class="text-xl font-semibold mb-4">Add New Player</h3>
                     <form id="playerForm" class="space-y-4" method="POST" action="form.php">
+                        
                         <div>
                             <label for="name" class="block text-sm font-medium text-gray-700">Player Name:</label>
                             <input type="text" id="name" name="name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>

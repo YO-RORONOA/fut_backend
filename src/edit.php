@@ -1,24 +1,43 @@
 <?php
-include('../php/config.php'); 
+include('../php/config.php');
+
+if (isset($_GET['id'])) {
+    $player_id = $_GET['id'];
+} else {
+    echo "Player ID not found.";
+    exit;
+}
+$sql = "SELECT players.id, players.name, players.position, players.rating, players.photo, 
+            nationalities.id AS nationality_id, nationalities.flag, nationalities.name as country,
+            clubs.id AS club_id, clubs.club, clubs.logo
+            FROM players
+            JOIN nationalities ON players.nationality_id = nationalities.id
+            JOIN clubs ON players.club_id = clubs.id
+            WHERE players.id = $player_id";
+
+        $result = $conn->query($sql);
+        $row = $result->fetch_assoc();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Get player ID (assume it is passed from the form)
+    $player_id = $_POST['player_id'];
 
-$sql = "SELECT players.name, players.position, players.rating, players.photo, nationalities.flag as flag, clubs.club as club
-        FROM players
-        JOIN nationalities ON players.nationality_id = nationalities.id
-        JOIN clubs ON players.club_id = clubs.id
-        where id= $id";
-        $result = $conn->query($sql);
-        while ($row = $result->fetch_assoc()) {
-   
+    // Fetch existing player data to update it
+
+
+    // Check if the player exists
+    if ($row) {
+        // Get the values from POST data (form submission)
         $name = $_POST['name'];
         $position = $_POST['position'];
-        $nationality = $_POST['nationality'];
-        $club = $_POST['club'];
         $rating = $_POST['rating'];
         $photo = $_POST['photo'];
+        $nationality = $_POST['nationality'];
+        $club = $_POST['club'];
         $logo = $_POST['logo'];
         $flag = $_POST['flag'];
+
+        // Specific stats for field players or goalkeepers
         $pace = $_POST['pace'];
         $shooting = $_POST['shooting'];
         $passing = $_POST['passing'];
@@ -32,55 +51,39 @@ $sql = "SELECT players.name, players.position, players.rating, players.photo, na
         $speed = $_POST['speed'];
         $positioning = $_POST['positioning'];
 
-        } 
-        
-        // $sql = " UPDATE players 
-        //     JOIN nationalities ON players.nationality_id = nationalities.id
-        //     JOIN clubs ON players.club_id = clubs.id
-        //     SET players.name = ?, 
-        //     players.position = ?, 
-        //     players.rating = ?, 
-        //     players.photo = ?, 
-        //     nationalities.flag = ?, 
-        //     clubs.club = ?
-        // WHERE players.id = ?";
+        // Update nationality
+        $stmt = $conn->prepare("UPDATE nationalities SET name = ?, flag = ? WHERE id = ?");
+        $stmt->bind_param("ssi", $nationality, $flag, $row['nationality_id']);
+        $stmt->execute();
 
+        // Update club
+        $stmt = $conn->prepare("UPDATE clubs SET club = ?, logo = ? WHERE id = ?");
+        $stmt->bind_param("ssi", $club, $logo, $row['club_id']);
+        $stmt->execute();
 
-        //flag
-$stmt= $conn->prepare("UPDATE set nationalities (name, flag) VALUES(?, ?) ON DUPLICATE KEY update id = id");
-$stmt-> bind_param("ss", $nationality, $flag);
-$stmt->execute();
-$nationality_id = $conn->insert_id ?: $conn->query("SELECT id FROM nationalities WHERE name = '{$nationality}'")->fetch_assoc()['id'];
+        // Update the player's basic information
+        $stmt = $conn->prepare("UPDATE players SET name = ?, photo = ?, position = ?, rating = ?, nationality_id = ?, club_id = ? WHERE id = ?");
+        $stmt->bind_param("sssiiii", $name, $photo, $position, $rating, $row['nationality_id'], $row['club_id'], $player_id);
+        $stmt->execute();
 
-// club
-$stmt = $conn->prepare("UPDATE set clubs (club, logo) VALUES (?, ?) ON DUPLICATE KEY UPDATE id=id");
-$stmt->bind_param("ss", $club, $logo);
-$stmt->execute();
-$club_id = $conn->insert_id ?: $conn->query("SELECT id FROM clubs WHERE club = '{$club}'")->fetch_assoc()['id'];
-
-// player
-$stmt = $conn->prepare("UPDATE set players (name, photo, position, rating, nationality_id, club_id) VALUES (?, ?, ?, ?, ?, ?)");
-$stmt->bind_param("sssiii", $name, $photo, $position, $rating, $nationality_id, $club_id);
-$stmt->execute();
-$player_id = $conn->insert_id;
-
-// stats
-if ($position === "GK") {
-
-    $stmt = $conn->prepare("UPDATE set goalkeeper (player_id, diving, handling, kicking, reflexes, speed, positioning) 
-        VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("iiiiiii", $player_id, $diving, $handling, $kicking, $reflexes, $speed, $positioning);
-    $stmt->execute();
-} else {
-
-    $stmt = $conn->prepare("UPDATE set fplayer (player_id, pace, shooting, passing, dribbling, defending, physical) 
-        VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("iiiiiii", $player_id, $pace, $shooting, $passing, $dribbling, $defending, $physical);
-    $stmt->execute();
+        // Update stats based on position (goalkeeper or field player)
+        if ($position === "GK") {
+            // Update goalkeeper stats
+            $stmt = $conn->prepare("UPDATE goalkeeper SET diving = ?, handling = ?, kicking = ?, reflexes = ?, speed = ?, positioning = ? WHERE player_id = ?");
+            $stmt->bind_param("iiiiiii", $diving, $handling, $kicking, $reflexes, $speed, $positioning, $player_id);
+            $stmt->execute();
+        } else {
+            // Update field player stats
+            $stmt = $conn->prepare("UPDATE fplayer SET pace = ?, shooting = ?, passing = ?, dribbling = ?, defending = ?, physical = ? WHERE player_id = ?");
+            $stmt->bind_param("iiiiiii", $pace, $shooting, $passing, $dribbling, $defending, $physical, $player_id);
+            $stmt->execute();
+        }
+    } else {
+        echo "Player not found!";
+    }
 }
+?>
 
-
-}
 
 
 <!DOCTYPE html>
@@ -122,55 +125,54 @@ if ($position === "GK") {
                 <div class="bg-white shadow-md rounded-lg p-6">
                     <h3 class="text-xl font-semibold mb-4">Add New Player</h3>
                     <form id="playerForm" class="space-y-4" method="POST" action="form.php">
-                        <input type="hidden" value="<?php echo $id; ?>" >
                         <div>
                             <label for="name" class="block text-sm font-medium text-gray-700">Player Name:</label>
-                            <input type="text" id="name" name="name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                            <input type="text" id="name" name="name" value="<?php echo $row['name']; ?>" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
                         </div>
 
                         <div>
                             <label for="position" class="block text-sm font-medium text-gray-700">Position:</label>
                             <select id="position" name="position" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
-                                <option value="ST">Striker</option>
-                                <option value="RW">Right Wing</option>
-                                <option value="LW">Left Wing</option>
-                                <option value="CM">Center Mid</option>
-                                <option value="CDM">Central Defensive Mid</option>
-                                <option value="CB">Center Back</option>
-                                <option value="GK">Goalkeeper</option>
-                                <option value="LB">Left Back</option>
-                                <option value="RB">Right Back</option>
+                                <option value="ST" <?php echo ($row['position'] == 'ST') ? 'selected' : ''; ?>>Striker</option>
+                                <option value="RW" <?php echo ($row['position'] == 'RW') ? 'selected' : ''; ?>>Right Wing</option>
+                                <option value="LW" <?php echo ($row['position'] == 'LW') ? 'selected' : ''; ?>>Left Wing</option>
+                                <option value="CM" <?php echo ($row['position'] == 'CM') ? 'selected' : ''; ?>>Center Mid</option>
+                                <option value="CDM" <?php echo ($row['position'] == 'CDM') ? 'selected' : ''; ?>>Central Defensive Mid</option>
+                                <option value="CB" <?php echo ($row['position'] == 'CB') ? 'selected' : ''; ?>>Center Back</option>
+                                <option value="GK" <?php echo ($row['position'] == 'GK') ? 'selected' : ''; ?>>Goalkeeper</option>
+                                <option value="LB" <?php echo ($row['position'] == 'LB') ? 'selected' : ''; ?>>Left Back</option>
+                                <option value="RB" <?php echo ($row['position'] == 'RB') ? 'selected' : ''; ?>>Right Back</option>
                             </select>
                         </div>
 
                         <div>
                             <label for="nationality" class="block text-sm font-medium text-gray-700">Nationality:</label>
-                            <input type="text" name="nationality" id="nationality" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                            <input type="text" name="nationality" value="<?php echo $row['country']; ?>" id="nationality"  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
                         </div>
 
                         <div>
                             <label for="club" class="block text-sm font-medium text-gray-700">Club URL:</label>
-                            <input type="url" id="club" name="club" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                            <input type="url" id="club" name="club" value="<?php echo $row['club']; ?>" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
                         </div>
 
                         <div>
                             <label for="rating" class="block text-sm font-medium text-gray-700">Rating:</label>
-                            <input type="number" name="rating" id="rating" min="1" max="100" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                            <input type="number" name="rating" id="rating" value="<?php echo $row['rating']; ?>" min="1" max="100" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
                         </div>
 
                         <div>
                             <label for="photo" class="block text-sm font-medium text-gray-700">Photo URL:</label>
-                            <input type="url" id="photo" name="photo" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                            <input type="url" id="photo" name="photo" value="<?php echo $row['photo']; ?>" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
                         </div>
 
                         <div>
                             <label for="logo" class="block text-sm font-medium text-gray-700">Logo URL:</label>
-                            <input type="url" id="logo" name="logo" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                            <input type="url" id="logo" name="logo" value="<?php echo $row['logo']; ?>" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
                         </div>
 
                         <div>
                             <label for="flag" class="block text-sm font-medium text-gray-700">Flag URL:</label>
-                            <input type="url" id="flag" name="flag" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                            <input type="url" id="flag" name="flag" value="<?php echo $row['flag']; ?>" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
                         </div>
 
                         <!-- Outfield player stats -->
@@ -239,6 +241,24 @@ if ($position === "GK") {
                     </form>
 
     <script src="./scripts.js"></script>
+    <script>
 
+document.addEventListener('DOMContentLoaded', function () {
+    const selectedPosition = document.getElementById('position').value;
+    const outfieldStats = document.getElementById('outfieldStats');
+    const gkStats = document.getElementById('gkStats');
+
+    if (selectedPosition === 'GK') {
+        outfieldStats.style.display = 'none';
+        gkStats.style.display = 'block';
+    } else {
+        outfieldStats.style.display = 'block';
+        gkStats.style.display = 'none';
+    }
+});
+
+    </script>
 </body>
 </html>
+
+

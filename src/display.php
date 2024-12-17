@@ -1,12 +1,12 @@
 <?php
 include('../php/config.php');
 
-$sql = "SELECT players.name, players.position, players.rating, players.photo, nationalities.flag as flag, clubs.club as club
+$sql = "SELECT players.id, players.name, players.position, players.rating, players.photo, nationalities.flag as flag, clubs.club as club
         FROM players
         JOIN nationalities ON players.nationality_id = nationalities.id
         JOIN clubs ON players.club_id = clubs.id";
 
-$result = $conn->query($sql);
+$result = $conn->query(query: $sql);
 ?>
 
 <!DOCTYPE html>
@@ -72,7 +72,7 @@ $result = $conn->query($sql);
                                 <td class="px-4 py-2">' . $row['position'] . '</td>
                                 <td class="px-4 py-2">' . $row['rating'] . '</td>
                                 <td class="px-4 py-2 text-center">
-                                    <button class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Edit</button>
+                                    <a href="edit.php?id='. $row['id'] . '" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Edit</a>
                                     <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Delete</button>
                                 </td>
                             </tr>';

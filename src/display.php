@@ -1,7 +1,7 @@
 <?php
 include('../php/config.php');
 
-$sql = "SELECT players.id, players.name, players.position, players.rating, players.photo, nationalities.flag as flag, clubs.club as club
+$sql = " SELECT players.id, players.name, players.position, players.rating, players.photo, nationalities.flag as flag, clubs.club as club
         FROM players
         JOIN nationalities ON players.nationality_id = nationalities.id
         JOIN clubs ON players.club_id = clubs.id";

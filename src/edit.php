@@ -3,7 +3,7 @@ include('../php/config.php');
 // include('./display.php');
 
 if (isset($_GET['id'])) {
-    $player_id = $_GET['id'];  // Get the player ID from the URL
+    $player_id = $_GET['id']; 
     
     $sql = "SELECT players.id, players.name, players.position, players.rating, players.photo, 
             nationalities.id AS nationality_id, nationalities.flag, nationalities.name as country,
@@ -21,8 +21,7 @@ if (isset($_GET['id'])) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // $player_id = $_POST['player_id'];
-    $player_id = $_GET['id'];
+        $player_id = $_POST['player_id'];
         $name = $_POST['name'];
         $position = $_POST['position'];
         $rating = $_POST['rating'];

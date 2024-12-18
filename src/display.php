@@ -27,7 +27,7 @@ $result = $conn->query(query: $sql);
             <nav class="mt-6">
                 <ul class="space-y-2">
                     <li><a href="./form.php" class="block px-4 py-2 hover:bg-gray-700">Add Player</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-700">View Players</a></li>
+                    <li><a href="./display.php" class="block px-4 py-2 hover:bg-gray-700">View Players</a></li>
                     <li><a href="#" class="block px-4 py-2 hover:bg-gray-700">Statistics</a></li>
                     <li><a href="#" class="block px-4 py-2 hover:bg-gray-700">Settings</a></li>
                 </ul>
@@ -72,11 +72,13 @@ $result = $conn->query(query: $sql);
                                 <td class="px-4 py-2">' . $row['position'] . '</td>
                                 <td class="px-4 py-2">' . $row['rating'] . '</td>
                                 <td class="px-4 py-2 text-center">
-                                    <a href="edit.php?id='. $row['id'] . '" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Edit</a>
+                                <a href="edit.php?id=' . $row['id'] . '" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Edit</a>
                                     <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Delete</button>
                                 </td>
                             </tr>';
+                            
                         }
+
                         ?>
 
                         </tbody>

@@ -1,3 +1,7 @@
+<!-- //select
+                            while($result natioanlities)
+                            //option value id,  -->
+
 <?php
 include('../php/config.php'); 
 
@@ -86,6 +90,11 @@ if(mysqli_num_rows($result)> 0)
 mysqli_close($conn);
 
 
+
+
+
+
+
 ?>
 
 
@@ -110,7 +119,7 @@ mysqli_close($conn);
             <nav class="mt-6">
                 <ul class="space-y-2">
                     <li><a href="./form.php" class="block px-4 py-2 hover:bg-gray-700">Add Player</a></li>
-                    <li><a href="#" class="block px-4 py-2 hover:bg-gray-700">View Players</a></li>
+                    <li><a href="./display.php" class="block px-4 py-2 hover:bg-gray-700">View Players</a></li>
                     <li><a href="#" class="block px-4 py-2 hover:bg-gray-700">Statistics</a></li>
                     <li><a href="#" class="block px-4 py-2 hover:bg-gray-700">Settings</a></li>
                 </ul>
@@ -128,8 +137,9 @@ mysqli_close($conn);
                 <div class="bg-white shadow-md rounded-lg p-6">
                     <h3 class="text-xl font-semibold mb-4">Add New Player</h3>
                     <form id="playerForm" class="space-y-4" method="POST" action="form.php">
-                        
-                        <div>
+                    <input type="hidden" name="player_id" value="<?php echo $player['id'];session_start(); $_SESSION['chiffre'] = $player['id']; header('Location: edit.php');?>">
+
+                    <div>
                             <label for="name" class="block text-sm font-medium text-gray-700">Player Name:</label>
                             <input type="text" id="name" name="name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
                         </div>

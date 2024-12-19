@@ -1,101 +1,85 @@
-<!-- //select
-                            while($result natioanlities)
-                            //option value id,  -->
-
 <?php
-include('../php/config.php'); 
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
-$name = $_POST['name'];
-$position = $_POST['position'];
-$nationality = $_POST['nationality'];
-$club = $_POST['club'];
-$rating = $_POST['rating'];
-$photo = $_POST['photo'];
-$logo = $_POST['logo'];
-$flag = $_POST['flag'];
-$pace = $_POST['pace'];
-$shooting = $_POST['shooting'];
-$passing = $_POST['passing'];
-$dribbling = $_POST['dribbling'];
-$defending = $_POST['defending'];
-$physical = $_POST['physical'];
-
-$diving = $_POST['diving'];
-$handling = $_POST['handling'];
-$kicking = $_POST['kicking'];
-$reflexes = $_POST['reflexes'];
-$speed = $_POST['speed'];
-$positioning = $_POST['positioning'];
-
-
-$name = mysqli_real_escape_string($conn, $name);
-$position = mysqli_real_escape_string($conn, $position);
-$nationality = mysqli_real_escape_string($conn, $nationality);
-$club = mysqli_real_escape_string($conn, $club);
-$photo = mysqli_real_escape_string($conn, $photo);
-$logo = mysqli_real_escape_string($conn, $logo);
-$flag = mysqli_real_escape_string($conn, $flag);
-
-
-//flag
-$stmt= $conn->prepare("INSERT INTO nationalities (name, flag) VALUES(?, ?) ON DUPLICATE KEY update id = id");
-$stmt-> bind_param("ss", $nationality, $flag);
-$stmt->execute();
-$nationality_id = $conn->insert_id ?: $conn->query("SELECT id FROM nationalities WHERE name = '{$nationality}'")->fetch_assoc()['id'];
-
-// club
-$stmt = $conn->prepare("INSERT INTO clubs (club, logo) VALUES (?, ?) ON DUPLICATE KEY UPDATE id=id");
-$stmt->bind_param("ss", $club, $logo);
-$stmt->execute();
-$club_id = $conn->insert_id ?: $conn->query("SELECT id FROM clubs WHERE club = '{$club}'")->fetch_assoc()['id'];
-
-// player
-$stmt = $conn->prepare("INSERT INTO players (name, photo, position, rating, nationality_id, club_id) VALUES (?, ?, ?, ?, ?, ?)");
-$stmt->bind_param("sssiii", $name, $photo, $position, $rating, $nationality_id, $club_id);
-$stmt->execute();
-$player_id = $conn->insert_id;
-
-// stats
-if ($position === "GK") {
-
-    $stmt = $conn->prepare("INSERT INTO goalkeeper (player_id, diving, handling, kicking, reflexes, speed, positioning) 
-        VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("iiiiiii", $player_id, $diving, $handling, $kicking, $reflexes, $speed, $positioning);
-    $stmt->execute();
-} else {
-
-    $stmt = $conn->prepare("INSERT INTO fplayer (player_id, pace, shooting, passing, dribbling, defending, physical) 
-        VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("iiiiiii", $player_id, $pace, $shooting, $passing, $dribbling, $defending, $physical);
-    $stmt->execute();
-}
-}
-$sql = "SELECT * FROM players";
-$result = mysqli_query($conn, $sql);
-echo($sql);
-if(mysqli_num_rows($result)> 0)
-{
-    while($row= mysqli_fetch_assoc($result))
-    {
-    
-        echo $row["name"] . "<br>";
-    
+require('../php/config.php');
+$nationalitiesQuery = "SELECT id, name FROM nationalities";
+$nationalitiesResult = $conn->query($nationalitiesQuery);
+$nationalities = [];
+if ($nationalitiesResult->num_rows > 0) {
+    while ($row = $nationalitiesResult->fetch_assoc()) {
+        $nationalities[] = $row;
     }
-};
+}
+$clubsQuery = "SELECT id, club FROM clubs";
+$clubsResult = $conn->query($clubsQuery);
+$clubs = [];
+if ($clubsResult->num_rows > 0) {
+    while ($row = $clubsResult->fetch_assoc()) {
+        $clubs[] = $row;
+    }
+}
+                                                                                                                                                                                                                                          
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (isset($_POST['nationality']) && isset($_POST['flag'])) {
+    
+        // Process nationality form
+        $nationality = mysqli_real_escape_string($conn, $_POST['nationality']);
+        $flag = mysqli_real_escape_string($conn, $_POST['flag']);
+        // echo($conn);
 
+        $stmt = $conn->prepare("INSERT INTO nationalities (name, flag) VALUES (?, ?)  ON DUPLICATE KEY UPDATE flag = ?");
+        $stmt->bind_param("sss", $nationality, $flag, $flag);
+        $stmt->execute();
+    } elseif (isset($_POST['club']) && isset($_POST['logo'])) {
+        // Process club form
+        $club = mysqli_real_escape_string($conn, $_POST['club']);
+        $logo = mysqli_real_escape_string($conn, $_POST['logo']);
 
+        $stmt = $conn->prepare("INSERT INTO clubs (club, logo) VALUES (?, ?) ON DUPLICATE KEY UPDATE logo = VALUES(logo)");
+        $stmt->bind_param("ss", $club, $logo);
+        $stmt->execute();
+    } elseif (isset($_POST['name']) && isset($_POST['position']) && isset($_POST['rating'])) {
+        // Process player form
+        $name = mysqli_real_escape_string($conn, $_POST['name']);
+        $position = mysqli_real_escape_string($conn, $_POST['position']);
+        $nationality_id = intval($_POST['nationality_id']);
+        $club_id = intval($_POST['club_id']);
+        $rating = intval($_POST['rating']);
+        $photo = mysqli_real_escape_string($conn, $_POST['photo']);
 
+        $stmt = $conn->prepare("INSERT INTO players (name, photo, position, rating, nationality_id, club_id) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("sssiii", $name, $photo, $position, $rating, $nationality_id, $club_id);
+        $stmt->execute();
+        $player_id = $conn->insert_id;
+
+        if ($position === "GK") {
+            $diving = intval($_POST['diving'] ?? 0);
+            $handling = intval($_POST['handling'] ?? 0);
+            $kicking = intval($_POST['kicking'] ?? 0);
+            $reflexes = intval($_POST['reflexes'] ?? 0);
+            $speed = intval($_POST['speed'] ?? 0);
+            $positioning = intval($_POST['positioning'] ?? 0);
+
+            $stmt = $conn->prepare("INSERT INTO goalkeeper (player_id, diving, handling, kicking, reflexes, speed, positioning) 
+                                    VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("iiiiiii", $player_id, $diving, $handling, $kicking, $reflexes, $speed, $positioning);
+            $stmt->execute();
+        } else {
+            $pace = intval($_POST['pace'] ?? 0);
+            $shooting = intval($_POST['shooting'] ?? 0);
+            $passing = intval($_POST['passing'] ?? 0);
+            $dribbling = intval($_POST['dribbling'] ?? 0);
+            $defending = intval($_POST['defending'] ?? 0);
+            $physical = intval($_POST['physical'] ?? 0);
+
+            $stmt = $conn->prepare("INSERT INTO fplayer (player_id, pace, shooting, passing, dribbling, defending, physical) 
+                                    VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("iiiiiii", $player_id, $pace, $shooting, $passing, $dribbling, $defending, $physical);
+            $stmt->execute();
+        }
+    }
+}
 mysqli_close($conn);
-
-
-
-
-
-
-
 ?>
+
 
 
 <!DOCTYPE html>
@@ -135,10 +119,43 @@ mysqli_close($conn);
             </header>
 <main class="flex-1 overflow-y-auto p-6">
                 <div class="bg-white shadow-md rounded-lg p-6">
+                    <!-- Form to Add Nationality -->
+            <div class="bg-white shadow-md rounded-lg p-6 mt-6">
+                <h3 class="text-xl font-semibold mb-4">Add Nationality</h3>
+                <form method="POST" action="form.php" class="space-y-4">
+                    <div>
+                        <label for="nationality_name" class="block text-sm font-medium">Nationality Name:</label>
+                        <input type="text" id="nationality_name" name="nationality" class="mt-1 block w-full border-gray-300 rounded-md" required>
+                    </div>
+                    <div>
+                        <label for="nationality_flag" class="block text-sm font-medium">Flag URL:</label>
+                        <input type="url" id="nationality_flag" name="flag" class="mt-1 block w-full border-gray-300 rounded-md" required>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-500 text-white rounded px-4 py-2">Add Nationality</button>
+                </form>
+            </div>
+
+             <!-- Form to Add Club -->
+             <div class="bg-white shadow-md rounded-lg p-6 mt-6">
+                <h3 class="text-xl font-semibold mb-4">Add Club</h3>
+                <form method="POST" action="form.php" class="space-y-4">
+                    <div>
+                        <label for="club_name" class="block text-sm font-medium">Club Name:</label>
+                        <input type="text" id="club_name" name="club" class="mt-1 block w-full border-gray-300 rounded-md" required>
+                    </div>
+                    <div>
+                        <label for="club_logo" class="block text-sm font-medium">Logo URL:</label>
+                        <input type="url" id="club_logo" name="logo" class="mt-1 block w-full border-gray-300 rounded-md" required>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-500 text-white rounded px-4 py-2">Add Club</button>
+                </form>
+            </div>
+
+
+
+
                     <h3 class="text-xl font-semibold mb-4">Add New Player</h3>
                     <form id="playerForm" class="space-y-4" method="POST" action="form.php">
-                    <input type="hidden" name="player_id" value="<?php echo $player['id'];session_start(); $_SESSION['chiffre'] = $player['id']; header('Location: edit.php');?>">
-
                     <div>
                             <label for="name" class="block text-sm font-medium text-gray-700">Player Name:</label>
                             <input type="text" id="name" name="name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
@@ -160,13 +177,20 @@ mysqli_close($conn);
                         </div>
 
                         <div>
-                            <label for="nationality" class="block text-sm font-medium text-gray-700">Nationality:</label>
-                            <input type="text" name="nationality" id="nationality" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
-                        </div>
-
-                        <div>
-                            <label for="club" class="block text-sm font-medium text-gray-700">Club URL:</label>
-                            <input type="url" id="club" name="club" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                            <label for="player_nationality" class="block text-sm font-medium">Nationality:</label>
+                        <select id="player_nationality" name="nationality_id" class="mt-1 block w-full border-gray-300 rounded-md" required>
+                            <?php foreach ($nationalities as $nationality): ?>
+                                <option value="<?= $nationality['id'] ?>"><?= $nationality['name'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="player_club" class="block text-sm font-medium">Club:</label>
+                        <select id="player_club" name="club_id" class="mt-1 block w-full border-gray-300 rounded-md" required>
+                            <?php foreach ($clubs as $club): ?>
+                                <option value="<?= $club['id'] ?>"><?= $club['club'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
                         </div>
 
                         <div>

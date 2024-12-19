@@ -6,7 +6,7 @@ $sql = " SELECT players.id, players.name, players.position, players.rating, play
         JOIN nationalities ON players.nationality_id = nationalities.id
         JOIN clubs ON players.club_id = clubs.id";
 
-$result = $conn->query(query: $sql);
+$result = $conn->query($sql);
 ?>
 
 <!DOCTYPE html>
@@ -63,7 +63,7 @@ $result = $conn->query(query: $sql);
                         <?php
                         // Loop through the results and display them in rows
                         while ($row = $result->fetch_assoc()) {
-                            echo '
+                            echo '  
                             <tr class="border-b">
                                 <td class="px-4 py-2">' . $row['name'] . '</td>
                                 <td class="px-4 py-2"><img src="' . $row['photo'] . '" alt="Player Photo" class="w-12 h-12 rounded-full object-cover"></td>

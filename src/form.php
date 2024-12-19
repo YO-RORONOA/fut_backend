@@ -33,8 +33,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $club = mysqli_real_escape_string($conn, $_POST['club']);
         $logo = mysqli_real_escape_string($conn, $_POST['logo']);
 
-        $stmt = $conn->prepare("INSERT INTO clubs (club, logo) VALUES (?, ?) ON DUPLICATE KEY UPDATE logo = VALUES(logo)");
-        $stmt->bind_param("ss", $club, $logo);
+        $stmt = $conn->prepare("INSERT INTO clubs (club, logo) VALUES (?, ?) ON DUPLICATE KEY UPDATE logo = ?");
+        $stmt->bind_param("sss", $club, $logo, $logo);
         $stmt->execute();
     } elseif (isset($_POST['name']) && isset($_POST['position']) && isset($_POST['rating'])) {
         // Process player form
@@ -47,7 +47,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $stmt = $conn->prepare("INSERT INTO players (name, photo, position, rating, nationality_id, club_id) VALUES (?, ?, ?, ?, ?, ?)");
         $stmt->bind_param("sssiii", $name, $photo, $position, $rating, $nationality_id, $club_id);
+
+        
+
         $stmt->execute();
+       
         $player_id = $conn->insert_id;
 
         if ($position === "GK") {

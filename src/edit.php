@@ -142,7 +142,7 @@ exit();
 
                         <div>
                             <label for="club" class="block text-sm font-medium text-gray-700">Club URL:</label>
-                            <input type="url" id="club" name="club" value="<?php echo $row['club']; ?>" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                            <input type="text" id="club" name="club" value="<?php echo $row['club']; ?>" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
                         </div>
 
                         <div>

@@ -1,5 +1,6 @@
 <?php
-require('../php/config.php');
+require('./config.php');
+
 $nationalitiesQuery = "SELECT id, name FROM nationalities";
 $nationalitiesResult = $conn->query($nationalitiesQuery);
 $nationalities = [];
@@ -25,9 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $flag = mysqli_real_escape_string($conn, $_POST['flag']);
         // echo($conn);
 
-        $stmt = $conn->prepare("INSERT INTO nationalities (name, flag) VALUES (?, ?)  ON DUPLICATE KEY UPDATE flag = ?");
-        $stmt->bind_param("sss", $nationality, $flag, $flag);
-        $stmt->execute();
+         
     } elseif (isset($_POST['club']) && isset($_POST['logo'])) {
         // Process club form
         $club = mysqli_real_escape_string($conn, $_POST['club']);

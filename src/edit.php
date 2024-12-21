@@ -1,5 +1,5 @@
 <?php
-include('../php/config.php');
+include('./config.php');
 // include('./display.php');
 
 if (isset($_GET['id'])) {

@@ -1,5 +1,5 @@
 <?php
-include('../php/config.php');
+include('./config.php');
 
 $sql = " SELECT players.id, players.name, players.position, players.rating, players.photo, nationalities.flag as flag, clubs.club as club
         FROM players
